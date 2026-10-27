@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; frame-src https://www.photopea.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'"
+  >
+  <title>Photopea</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app" class="app">
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="overlay" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p class="overlay-text">Loading Photopea…</p>
+    </div>
+
+    <!-- Error overlay -->
+    <div id="error-overlay" class="overlay overlay--error" role="alert" aria-live="assertive" hidden>
+      <div class="error-icon" aria-hidden="true">⚠️</div>
+      <p class="overlay-text">Failed to load Photopea.</p>
+      <p id="error-detail" class="overlay-subtext"></p>
+      <button id="retry-button" class="btn btn--primary" type="button">
+        Retry
+      </button>
+    </div>
+
+    <!-- Photopea iframe -->
+    <iframe
+      id="photopea-frame"
+      class="photopea-frame"
+      src="https://www.photopea.com/"
+      title="Photopea Image Editor"
+      allow="clipboard-read; clipboard-write"
+    ></iframe>
+  </main>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>

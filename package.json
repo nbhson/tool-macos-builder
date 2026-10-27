@@ -1,24 +1,53 @@
 {
-  "name": "Photopea",
-  "version": "1.0.0",
-  "main": "app.js",
+  "name": "photopea-desktop",
+  "version": "1.1.0",
+  "description": "Desktop wrapper for Photopea – open-source online image editor",
+  "type": "module",
+  "main": "dist/main/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron .",
-    "build": "electron-builder"
+    "dev": "electron .",
+    "build:ts": "tsc",
+    "build": "npm run build:ts && electron-builder",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "npm run build:ts && electron ."
   },
   "build": {
-    "appId": "com.example.app",
+    "appId": "com.photopea.desktop",
+    "productName": "Photopea",
     "mac": {
-      "target": "dmg"
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.graphics-design"
+    },
+    "files": [
+      "dist/**/*",
+      "src/renderer/**/*",
+      "!src/**/*.ts"
+    ],
+    "extraMetadata": {
+      "main": "dist/main/index.js"
     }
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "photopea",
+    "image-editor",
+    "electron",
+    "desktop"
+  ],
+  "author": "Photopea Desktop Team",
+  "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
     "electron": "^34.3.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.17.0",
+    "globals": "^15.14.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.72.1",
+    "vitest": "^2.1.8"
   }
 }
