@@ -60,7 +60,11 @@ The renderer runs with:
 
 - `contextIsolation: true`
 - `nodeIntegration: false`
+- `sandbox: true` and `webviewTag: false`
 - A strict Content-Security-Policy allowing frames only from `photopea.com`
+- Navigation guard: main-frame navigation is restricted to local `file://` URLs
+- All permission requests (camera, geolocation, notifications, …) are denied
+- External links open in the system browser via `setWindowOpenHandler`
 
 All privileged access goes through the typed `window.photopeaAPI` bridge exposed by the preload script (`src/preload/index.ts`).
 
@@ -71,9 +75,22 @@ All privileged access goes through the typed `window.photopeaAPI` bridge exposed
 | `npm start`        | Compile TypeScript and launch the app        |
 | `npm run dev`      | Launch Electron without recompiling          |
 | `npm run build`    | Compile + package a macOS DMG                |
+| `npm run typecheck`| Typecheck only (`tsc --noEmit`)              |
 | `npm test`         | Run unit tests once                          |
 | `npm run test:watch` | Run unit tests in watch mode               |
-| `npm run lint`     | Lint TypeScript sources with ESLint          |
+| `npm run lint`     | Lint all TypeScript sources (`src/`, `tests/`) |
+
+## Continuous integration
+
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs typecheck, lint,
+and unit tests on every push to `main` and on pull requests.
+
+## Dependencies
+
+All security advisories from `npm audit` are confined to development
+dependencies (electron, electron-builder, eslint, vitest toolchains) and only
+have semver-major fixes. Upgrades are tracked separately to avoid breaking
+behavior changes.
 
 ## License
 
