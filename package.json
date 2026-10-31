@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "electron .",
     "build:ts": "tsc",
+    "typecheck": "tsc --noEmit",
     "build": "npm run build:ts && electron-builder",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "npm run build:ts && electron ."
