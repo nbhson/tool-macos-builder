@@ -13,7 +13,13 @@ import { IPC_CHANNELS } from '../src/shared/constants';
 const state = vi.hoisted(() => ({
   windowOptions: [] as unknown[],
   loadFileArgs: [] as string[],
-  openHandler: undefined as undefined | (opts: { url: string }) => { action: string },
+  openHandler: undefined as undefined | ((opts: { url: string }) => { action: string }),
+  willNavigate: undefined as undefined | { preventDefault: () => void; url: string },
+  permissionRequests: [] as { permission: string; allowed: boolean }[],
+  permissionHandler:
+    undefined as
+    | undefined
+    | ((_wc: unknown, permission: string, callback: (allowed: boolean) => void) => void),
   openExternalArgs: [] as string[],
   ipcHandlers: new Map<string, (channel: string) => string>(),
   appListeners: new Map<string, (...args: unknown[]) => void>(),
@@ -27,6 +33,21 @@ vi.mock('electron', () => {
     webContents = {
       setWindowOpenHandler: (cb: typeof state.openHandler) => {
         state.openHandler = cb;
+      },
+      on: (
+        _event: string,
+        cb: (event: { preventDefault: () => void }, url: string) => void,
+      ) => {
+        state.willNavigate = (opts: { preventDefault: () => void; url: string }) =>
+          cb(opts, opts.url);
+      },
+
+      session: {
+        setPermissionRequestHandler: (
+          cb: (_wc: unknown, permission: string, callback: (allowed: boolean) => void) => void,
+        ) => {
+          state.permissionHandler = cb;
+        },
       },
     };
     loadFile = (file: string) => {
@@ -91,6 +112,9 @@ describe('main process', () => {
     state.loadFileArgs.length = 0;
     state.openExternalArgs.length = 0;
     state.openHandler = undefined;
+    state.willNavigate = undefined;
+    state.permissionHandler = undefined;
+    state.permissionRequests.length = 0;
     state.ipcHandlers.clear();
     state.appListeners.clear();
     state.quitCount = 0;
@@ -152,6 +176,40 @@ describe('main process', () => {
 
     expect(result).toEqual({ action: 'deny' });
     expect(state.openExternalArgs).toHaveLength(0);
+  });
+
+  it('blocks main-frame navigation away from local app files', async () => {
+    await importMain();
+
+    expect(state.willNavigate).toBeDefined();
+    const prevented: string[] = [];
+    const event = { preventDefault: () => prevented.push('nav') };
+
+    state.willNavigate({ ...event, url: 'https://evil.example.com' });
+    expect(prevented).toEqual(['nav']);
+  });
+
+  it('allows navigation to local file:// URLs', async () => {
+    await importMain();
+
+    const prevented: string[] = [];
+    const event = { preventDefault: () => prevented.push('nav') };
+
+    state.willNavigate({ ...event, url: 'file:///app/renderer/index.html' });
+    expect(prevented).toEqual([]);
+  });
+
+  it('registers a permission request handler that denies every permission', async () => {
+    await importMain();
+
+    expect(state.permissionHandler).toBeDefined();
+    for (const permission of ['media', 'geolocation', 'notifications', 'clipboard-read']) {
+      let allowed: boolean | undefined;
+      state.permissionHandler({}, permission, (result: boolean) => {
+        allowed = result;
+      });
+      expect(allowed).toBe(false);
+    }
   });
 
   it('quits when all windows are closed on non-darwin platforms', async () => {

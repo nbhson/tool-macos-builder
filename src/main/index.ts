@@ -35,6 +35,20 @@ function createWindow(): BrowserWindow {
     return { action: 'deny' };
   });
 
+  // Navigation guard: only allow the local app files, deny everything else
+  win.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith('file://')) {
+      event.preventDefault();
+    }
+  });
+
+  // Deny every permission request (camera, geolocation, notifications, ...)
+  win.webContents.session.setPermissionRequestHandler(
+    (_webContents, _permission, callback) => {
+      callback(false);
+    },
+  );
+
   return win;
 }
 
